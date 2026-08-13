@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime    @default(now())
+  candidate    Candidate?
+  recruiter    Recruiter?
+}
+
+enum Role {
+  CANDIDATE
+  RECRUITER
+}
+
+model Candidate {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id])
+  fullName     String
+  resumes      Resume[]
+  applications Application[]
+}
+
+model Recruiter {
+  id          String       @id @default(uuid())
+  userId      String       @unique
+  user        User         @relation(fields: [userId], references: [id])
+  companyName String
+  jobPostings JobPosting[]
+}
+
+model JobPosting {
+  id           String        @id @default(uuid())
+  recruiterId  String
+  recruiter    Recruiter     @relation(fields: [recruiterId], references: [id])
+  title        String
+  description  String
+  status       String        @default("OPEN")
+  applications Application[]
+}
+
+model Resume {
+  id           String        @id @default(uuid())
+  candidateId  String
+  candidate    Candidate     @relation(fields: [candidateId], references: [id])
+  fileUrl      String
+  parsedSkills Json?
+  applications Application[]
+}
+
+model Application {
+  id               String            @id @default(uuid())
+  candidateId      String
+  candidate        Candidate         @relation(fields: [candidateId], references: [id])
+  jobId            String
+  jobPosting       JobPosting        @relation(fields: [jobId], references: [id])
+  resumeId         String
+  resume           Resume            @relation(fields: [resumeId], references: [id])
+  matchScore       Float?
+  status           String            @default("APPLIED")
+  interviewSession InterviewSession?
+  skillGaps        SkillGap[]
+
+  @@unique([candidateId, jobId])
+}
+
+model InterviewSession {
+  id               String              @id @default(uuid())
+  applicationId    String              @unique
+  application      Application         @relation(fields: [applicationId], references: [id])
+  status           String              @default("PENDING")
+  startedAt        DateTime?
+  endedAt          DateTime?
+  questions        InterviewQuestion[]
+  proctoringEvents ProctoringEvent[]
+  report           Report?
+}
+
+model InterviewQuestion {
+  id           String           @id @default(uuid())
+  sessionId    String
+  session      InterviewSession @relation(fields: [sessionId], references: [id])
+  questionText String
+  difficulty   String
+  orderIndex   Int
+  answer       InterviewAnswer?
+}
+
+model InterviewAnswer {
+  id         String            @id @default(uuid())
+  questionId String            @unique
+  question   InterviewQuestion @relation(fields: [questionId], references: [id])
+  answerText String
+  audioUrl   String?
+  score      Float?
+}
+
+model SkillGap {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  missingSkill  String
+  importance    String
+}
+
+model Report {
+  id             String           @id @default(uuid())
+  sessionId      String           @unique
+  session        InterviewSession @relation(fields: [sessionId], references: [id])
+  summary        String
+  recommendation String
+}
+
+model ProctoringEvent {
+  id        String           @id @default(uuid())
+  sessionId String
+  session   InterviewSession @relation(fields: [sessionId], references: [id])
+  eventType String
+  createdAt DateTime         @default(now())
+}
