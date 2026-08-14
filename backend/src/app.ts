@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./modules/auth/auth.routes";
 import { authMiddleware } from "./shared/authMiddleware";
+import resumeRoutes from "./modules/resumes/resumes.routes";
 
 dotenv.config();
 
@@ -17,5 +18,7 @@ app.use("/api/auth", authRoutes);
 app.get("/api/protected-test", authMiddleware, (req, res) => {
   res.json({ success: true, message: "You are authenticated" });
 });
+
+app.use("/api/resumes", resumeRoutes);
 
 export default app;

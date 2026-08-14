@@ -55,6 +55,7 @@ model Resume {
   candidateId  String
   candidate    Candidate     @relation(fields: [candidateId], references: [id])
   fileUrl      String
+  parsedText   String?
   parsedSkills Json?
   applications Application[]
 }
@@ -129,3 +130,4 @@ model ProctoringEvent {
   eventType String
   createdAt DateTime         @default(now())
 }
+
