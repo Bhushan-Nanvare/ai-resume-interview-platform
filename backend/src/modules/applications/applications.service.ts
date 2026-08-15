@@ -1,4 +1,5 @@
 import { prisma } from "../../shared/prisma";
+import { generateEmbedding, cosineSimilarity, generateSkillGaps } from "../../shared/embeddings";
 
 export async function applyToJob(userId: string, jobId: string, resumeId: string) {
   const candidate = await prisma.candidate.findUnique({ where: { userId } });
@@ -9,14 +10,35 @@ export async function applyToJob(userId: string, jobId: string, resumeId: string
     throw new Error("Resume not found or doesn't belong to you");
   }
 
+  const job = await prisma.jobPosting.findUnique({ where: { id: jobId } });
+  if (!job) throw new Error("Job not found");
+
   const existing = await prisma.application.findUnique({
     where: { candidateId_jobId: { candidateId: candidate.id, jobId } },
   });
   if (existing) throw new Error("You've already applied to this job");
 
-  return prisma.application.create({
-    data: { candidateId: candidate.id, jobId, resumeId },
+  const matchScore = Math.round(
+    cosineSimilarity(resume.embedding as number[], job.embedding as number[]) * 100
+  );
+
+  const application = await prisma.application.create({
+    data: { candidateId: candidate.id, jobId, resumeId, matchScore },
   });
+
+  const gaps = await generateSkillGaps(resume.parsedText || "", job.description);
+
+  if (gaps.length > 0) {
+    await prisma.skillGap.createMany({
+      data: gaps.map((g) => ({
+        applicationId: application.id,
+        missingSkill: g.skill,
+        importance: g.importance,
+      })),
+    });
+  }
+
+  return application;
 }
 
 export async function listMyApplications(userId: string) {
@@ -25,7 +47,7 @@ export async function listMyApplications(userId: string) {
 
   return prisma.application.findMany({
     where: { candidateId: candidate.id },
-    include: { jobPosting: true },
+    include: { jobPosting: true, skillGaps: true },
   });
 }
 
@@ -40,6 +62,6 @@ export async function listApplicantsForJob(userId: string, jobId: string) {
 
   return prisma.application.findMany({
     where: { jobId },
-    include: { candidate: true, resume: true },
+    include: { candidate: true, resume: true, skillGaps: true },
   });
 }
