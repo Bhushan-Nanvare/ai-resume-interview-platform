@@ -43,3 +43,72 @@ Use "high", "medium", or "low" for importance. If there are no meaningful gaps, 
   const cleaned = text.replace(/```json|```/g, "").trim();
   return JSON.parse(cleaned);
 }
+
+
+export async function generateNextQuestion(context: {
+  resumeText: string;
+  jobDescription: string;
+  skillGaps: string[];
+  previousQA: { question: string; answer: string; score: number }[];
+  difficulty: "easy" | "medium" | "hard";
+}): Promise<string> {
+  const history = context.previousQA
+    .map((qa, i) => `Q${i + 1} (${qa.score}/10): ${qa.question}\nCandidate's answer: ${qa.answer}`)
+    .join("\n\n");
+
+  const prompt = `You are an interviewer for a job. Generate ONE interview question at ${context.difficulty} difficulty level.
+
+Job Description:
+${context.jobDescription}
+
+Candidate's Resume Summary:
+${context.resumeText.slice(0, 2000)}
+
+Key skill gaps to probe: ${context.skillGaps.join(", ") || "none identified"}
+
+Previous questions and answers in this interview:
+${history || "This is the first question."}
+
+Generate a new, different question — do not repeat previous topics. Respond with ONLY the question text, nothing else.`;
+
+  const result = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
+  return (result.text ?? "").trim();
+}
+
+export async function evaluateAnswer(question: string, answer: string): Promise<{ score: number; feedback: string }> {
+  const prompt = `Evaluate this interview answer on a scale of 0-10.
+
+Question: ${question}
+Candidate's Answer: ${answer}
+
+Respond with ONLY JSON in this exact format, no other text:
+{"score": 7, "feedback": "Brief 1-2 sentence feedback on strengths and weaknesses."}`;
+
+  const result = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
+  const text = result.text ?? '{"score":5,"feedback":"Unable to evaluate"}';
+  return JSON.parse(text.replace(/```json|```/g, "").trim());
+}
+
+export async function generateFinalReport(context: {
+  jobDescription: string;
+  qaHistory: { question: string; answer: string; score: number }[];
+}): Promise<{ summary: string; recommendation: string }> {
+  const history = context.qaHistory
+    .map((qa, i) => `Q${i + 1} (${qa.score}/10): ${qa.question}\nAnswer: ${qa.answer}`)
+    .join("\n\n");
+
+  const prompt = `Write a final interview report based on this Q&A history for a job application.
+
+Job Description:
+${context.jobDescription}
+
+Interview Q&A:
+${history}
+
+Respond with ONLY JSON in this exact format:
+{"summary": "2-3 sentence overview of performance, strengths and weaknesses.", "recommendation": "One of: Strongly Recommend, Recommend, Consider, Do Not Recommend — plus a brief reason."}`;
+
+  const result = await ai.models.generateContent({ model: "gemini-2.5-flash", contents: prompt });
+  const text = result.text ?? '{"summary":"","recommendation":""}';
+  return JSON.parse(text.replace(/```json|```/g, "").trim());
+}

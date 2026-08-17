@@ -6,6 +6,7 @@ import authRoutes from "./modules/auth/auth.routes";
 import { authMiddleware } from "./shared/authMiddleware";
 import resumeRoutes from "./modules/resumes/resumes.routes";
 import jobRoutes from "./modules/jobs/jobs.routes";
+import interviewRoutes from "./modules/interviews/interviews.routes";
 dotenv.config();
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/interviews", interviewRoutes);
 
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
