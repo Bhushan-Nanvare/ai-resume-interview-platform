@@ -42,11 +42,18 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-slate-50">
       <Navbar />
       <div className="max-w-2xl mx-auto p-8">
-        <h1 className="text-2xl font-semibold text-slate-900 mb-6">Your resumes</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-semibold text-slate-900">Your resumes</h1>
+          <a href="/candidate/jobs" className="text-sm text-slate-600 hover:text-slate-900">
+            Browse jobs →
+          </a>
+        </div>
 
         <label className="block border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-slate-400 mb-8">
           <input type="file" accept=".pdf" className="hidden" onChange={handleFileChange} disabled={uploading} />
-          <p className="text-sm text-slate-600">{uploading ? "Uploading and parsing..." : "Click to upload a PDF resume"}</p>
+          <p className="text-sm text-slate-600">
+            {uploading ? "Uploading and parsing..." : "Click to upload a PDF resume"}
+          </p>
         </label>
 
         {error && <p className="text-red-600 text-sm mb-4">{error}</p>}

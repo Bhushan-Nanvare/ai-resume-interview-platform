@@ -1,5 +1,6 @@
 import { prisma } from "../../shared/prisma";
 import { generateNextQuestion, evaluateAnswer, generateFinalReport } from "../../shared/embeddings";
+import fs from "fs" ;
 
 const TOTAL_QUESTIONS = 5;
 
@@ -123,4 +124,10 @@ export async function getSession(userId: string, sessionId: string) {
     throw new Error("Session not found or doesn't belong to you");
   }
   return session;
+}
+
+export async function submitAudioAnswer(userId: string, sessionId: string, questionId: string, filePath: string, mimeType: string) {
+  const audioBuffer = fs.readFileSync(filePath);
+  const transcript = await transcribeAudio(audioBuffer, mimeType);
+  return submitAnswer(userId, sessionId, questionId, transcript);
 }

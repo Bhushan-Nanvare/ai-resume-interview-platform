@@ -112,3 +112,20 @@ Respond with ONLY JSON in this exact format:
   const text = result.text ?? '{"summary":"","recommendation":""}';
   return JSON.parse(text.replace(/```json|```/g, "").trim());
 }
+
+export async function transcribeAudio(audioBuffer: Buffer, mimeType: string): Promise<string> {
+  const base64Audio = audioBuffer.toString("base64");
+
+  const result = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      { text: "Transcribe this audio exactly as spoken. Respond with ONLY the transcript text, no commentary." },
+      { inlineData: { mimeType, data: base64Audio } },
+    ],
+  });
+
+  return (result.text ?? "").trim();
+}
+
+
+

@@ -34,3 +34,20 @@ export async function getSessionHandler(req: AuthRequest, res: Response) {
     res.status(400).json({ success: false, error: err.message });
   }
 }
+
+export async function audioAnswerHandler(req: AuthRequest, res: Response) {
+  try {
+    if (!req.file) throw new Error("No audio file uploaded");
+    const result = await interviewsService.submitAudioAnswer(
+      req.user!.userId,
+      req.params.sessionId,
+      req.body.questionId,
+      req.file.path,
+      req.file.mimetype
+    );
+    res.json({ success: true, data: result });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+}
+
