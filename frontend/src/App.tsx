@@ -5,6 +5,7 @@ import CandidateDashboard from "./pages/candidate/DashboardPage";
 import RecruiterDashboard from "./pages/recruiter/DashboardPage";
 import JobsPage from "./pages/candidate/JobsPage";
 import ApplicantsPage from "./pages/recruiter/ApplicantsPage";
+import InterviewPage from "./pages/interview/InterviewPage";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/recruiter/dashboard" element={<RecruiterDashboard />} />
         <Route path="/candidate/jobs" element={<JobsPage />} />
         <Route path="/recruiter/jobs/:jobId/applicants" element={<ApplicantsPage />} />
+        <Route path="/candidate/interview/:applicationId" element={<InterviewPage />} />
       </Routes>
     </BrowserRouter>
   );
