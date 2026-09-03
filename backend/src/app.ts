@@ -1,13 +1,11 @@
 import express from "express";
 import applicationRoutes from "./modules/applications/applications.routes";
 import cors from "cors";
-import dotenv from "dotenv";
 import authRoutes from "./modules/auth/auth.routes";
 import { authMiddleware } from "./shared/authMiddleware";
 import resumeRoutes from "./modules/resumes/resumes.routes";
 import jobRoutes from "./modules/jobs/jobs.routes";
 import interviewRoutes from "./modules/interviews/interviews.routes";
-dotenv.config();
 
 const app = express();
 app.use(cors());

@@ -2,7 +2,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { prisma } from "../../shared/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_change_this";
+// Read at call time, not at module load time (avoids dotenv hoisting issue)
+const getJwtSecret = () => process.env.JWT_SECRET || "dev_secret_change_this";
 
 export async function signup(email: string, password: string, role: "CANDIDATE" | "RECRUITER", name: string) {
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -35,5 +36,5 @@ export async function login(email: string, password: string) {
 }
 
 function signToken(userId: string, role: string) {
-  return jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ userId, role }, getJwtSecret(), { expiresIn: "7d" });
 }

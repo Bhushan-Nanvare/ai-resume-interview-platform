@@ -47,6 +47,7 @@ model JobPosting {
   title        String
   description  String
   status       String        @default("OPEN")
+  embedding    Float[]
   applications Application[]
 }
 
@@ -57,6 +58,7 @@ model Resume {
   fileUrl      String
   parsedText   String?
   parsedSkills Json?
+  embedding    Float[]
   applications Application[]
 }
 

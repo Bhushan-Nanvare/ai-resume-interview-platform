@@ -1,6 +1,7 @@
 import { PDFParse } from "pdf-parse";
 import fs from "fs";
 import { prisma } from "../../shared/prisma";
+import { generateEmbedding } from "../../shared/embeddings";
 
 export async function uploadResume(userId: string, file: Express.Multer.File) {
   const candidate = await prisma.candidate.findUnique({ where: { userId } });
@@ -11,13 +12,23 @@ export async function uploadResume(userId: string, file: Express.Multer.File) {
   const result = await parser.getText();
   await parser.destroy();
 
+  const embedding = await generateEmbedding(result.text);
+
   const resume = await prisma.resume.create({
     data: {
       candidateId: candidate.id,
       fileUrl: file.path,
       parsedText: result.text,
+      embedding,
     },
   });
 
   return resume;
+}
+
+export async function listMyResumes(userId: string) {
+  const candidate = await prisma.candidate.findUnique({ where: { userId } });
+  if (!candidate) throw new Error("Candidate profile not found");
+
+  return prisma.resume.findMany({ where: { candidateId: candidate.id } });
 }
