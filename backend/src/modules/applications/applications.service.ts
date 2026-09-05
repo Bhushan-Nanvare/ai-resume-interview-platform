@@ -38,7 +38,7 @@ export async function applyToJob(userId: string, jobId: string, resumeId: string
     });
   }
 
-  return { ...application, skillGaps: gaps.map((g) => ({ missingSkill: g.skill, importance: g.importance })) };;
+  return { ...application, skillGaps: gaps.map((g) => ({ missingSkill: g.skill, importance: g.importance })) };
 }
 
 export async function listMyApplications(userId: string) {

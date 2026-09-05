@@ -1,6 +1,6 @@
 import { prisma } from "../../shared/prisma";
-import { generateNextQuestion, evaluateAnswer, generateFinalReport } from "../../shared/embeddings";
-import fs from "fs" ;
+import { generateNextQuestion, evaluateAnswer, generateFinalReport, transcribeAudio } from "../../shared/embeddings";
+import fs from "fs";
 
 const TOTAL_QUESTIONS = 5;
 

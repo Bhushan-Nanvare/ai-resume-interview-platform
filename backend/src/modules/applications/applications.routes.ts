@@ -1,6 +1,5 @@
 import { Router } from "express";
 import { authMiddleware, requireRole } from "../../shared/authMiddleware";
-import { applyHandler, listMineHandler, listApplicantsHandler } from "./applications.controller";
 import { applyHandler, listMineHandler, listApplicantsHandler, updateStatusHandler } from "./applications.controller";
 const router = Router();
 
