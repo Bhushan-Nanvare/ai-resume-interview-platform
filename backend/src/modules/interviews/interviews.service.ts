@@ -118,6 +118,7 @@ export async function getSession(userId: string, sessionId: string) {
       application: true,
       questions: { include: { answer: true }, orderBy: { orderIndex: "asc" } },
       report: true,
+      proctoringEvents: true,
     },
   });
   if (!session || session.application.candidateId !== candidate.id) {
@@ -130,4 +131,18 @@ export async function submitAudioAnswer(userId: string, sessionId: string, quest
   const audioBuffer = fs.readFileSync(filePath);
   const transcript = await transcribeAudio(audioBuffer, mimeType);
   return submitAnswer(userId, sessionId, questionId, transcript);
+}
+export async function logProctoringEvent(userId: string, sessionId: string, eventType: string) {
+  const candidate = await prisma.candidate.findUnique({ where: { userId } });
+  if (!candidate) throw new Error("Candidate profile not found");
+
+  const session = await prisma.interviewSession.findUnique({
+    where: { id: sessionId },
+    include: { application: true },
+  });
+  if (!session || session.application.candidateId !== candidate.id) {
+    throw new Error("Session not found or doesn't belong to you");
+  }
+
+  return prisma.proctoringEvent.create({ data: { sessionId, eventType } });
 }

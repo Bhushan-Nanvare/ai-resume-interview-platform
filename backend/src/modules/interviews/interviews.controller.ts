@@ -50,4 +50,15 @@ export async function audioAnswerHandler(req: AuthRequest, res: Response) {
     res.status(400).json({ success: false, error: err.message });
   }
 }
+const proctoringSchema = z.object({ eventType: z.enum(["TAB_SWITCH", "COPY_PASTE"]) });
+
+export async function proctoringHandler(req: AuthRequest, res: Response) {
+  try {
+    const { eventType } = proctoringSchema.parse(req.body);
+    await interviewsService.logProctoringEvent(req.user!.userId, req.params.sessionId, eventType);
+    res.status(201).json({ success: true });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+}
 

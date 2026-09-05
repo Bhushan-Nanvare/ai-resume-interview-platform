@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { startInterview, submitAnswer, getSession } from "../../api/interviewsApi";
 import Navbar from "../../components/common/Navbar";
+import api from "../../api/axiosClient";
 
 interface Question { id: string; questionText: string; difficulty: string; }
 interface LastResult { score: number; feedback: string; }
@@ -20,6 +21,31 @@ export default function InterviewPage() {
   const [error, setError] = useState("");
 
   useEffect(() => { begin(); }, []);
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    function logEvent(eventType: "TAB_SWITCH" | "COPY_PASTE") {
+      api.post(`/interviews/${sessionId}/proctoring`, { eventType }).catch(() => { });
+    }
+
+    function handleVisibilityChange() {
+      if (document.hidden) logEvent("TAB_SWITCH");
+    }
+    function handleCopyPaste() {
+      logEvent("COPY_PASTE");
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("copy", handleCopyPaste);
+    document.addEventListener("paste", handleCopyPaste);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("copy", handleCopyPaste);
+      document.removeEventListener("paste", handleCopyPaste);
+    };
+  }, [sessionId]);
 
   async function begin() {
     try {
