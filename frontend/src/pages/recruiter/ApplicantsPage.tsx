@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { listApplicantsForJob } from "../../api/applicationsApi";
 import Navbar from "../../components/common/Navbar";
+import { listApplicantsForJob, updateApplicationStatus } from "../../api/applicationsApi";
 
 interface Applicant {
   id: string;
@@ -27,6 +28,14 @@ export default function ApplicantsPage() {
       setError(err.response?.data?.error || "Failed to load applicants");
     }
   }
+  async function handleStatus(applicationId: string, status: "SHORTLISTED" | "REJECTED") {
+    try {
+      await updateApplicationStatus(applicationId, status);
+      setApplicants((prev) => prev.map((a) => (a.id === applicationId ? { ...a, status } : a)));
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Failed to update status");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -41,7 +50,17 @@ export default function ApplicantsPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-slate-900">#{i + 1} {a.candidate.fullName}</p>
-                  <p className="text-xs text-slate-500">{a.status}</p>
+                  <div className="flex items-center gap-2">
+                    <p className={`text-xs ${a.status === "SHORTLISTED" ? "text-green-600" : a.status === "REJECTED" ? "text-red-500" : "text-slate-500"}`}>
+                      {a.status}
+                    </p>
+                    {a.status === "APPLIED" && (
+                      <>
+                        <button onClick={() => handleStatus(a.id, "SHORTLISTED")} className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded">Shortlist</button>
+                        <button onClick={() => handleStatus(a.id, "REJECTED")} className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded">Reject</button>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <p className="text-lg font-semibold text-slate-900">{a.matchScore}%</p>
               </div>

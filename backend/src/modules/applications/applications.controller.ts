@@ -35,3 +35,14 @@ export async function listApplicantsHandler(req: AuthRequest, res: Response) {
     res.status(400).json({ success: false, error: err.message });
   }
 }
+const statusSchema = z.object({ status: z.enum(["SHORTLISTED", "REJECTED"]) });
+
+export async function updateStatusHandler(req: AuthRequest, res: Response) {
+  try {
+    const { status } = statusSchema.parse(req.body);
+    const application = await applicationsService.updateApplicationStatus(req.user!.userId, req.params.id, status);
+    res.json({ success: true, data: application });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+}

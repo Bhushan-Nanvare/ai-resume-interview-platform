@@ -65,3 +65,18 @@ export async function listApplicantsForJob(userId: string, jobId: string) {
     include: { candidate: true, resume: true, skillGaps: true },
   });
 }
+
+export async function updateApplicationStatus(userId: string, applicationId: string, status: "SHORTLISTED" | "REJECTED") {
+  const recruiter = await prisma.recruiter.findUnique({ where: { userId } });
+  if (!recruiter) throw new Error("Recruiter profile not found");
+
+  const application = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: { jobPosting: true },
+  });
+  if (!application || application.jobPosting.recruiterId !== recruiter.id) {
+    throw new Error("Application not found or doesn't belong to your job posting");
+  }
+
+  return prisma.application.update({ where: { id: applicationId }, data: { status } });
+}
